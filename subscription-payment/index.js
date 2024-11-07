@@ -8,6 +8,7 @@ const Plan = require('./models/Plan');
 const Subscription = require('./models/Subscription');
 
 const app = express();
+app.use(express.json());
 
 app.use('/', PaymentController);
 
