@@ -34,15 +34,16 @@ app.post('/payment/webhook', async (request, response) => {
       // Enviar email dando boas vindas, etc.
 
       break;
-    case 'payment_method.attached':
-      const paymentMethod = event.data.object;
+    case 'customer.subscription.deleted':
+      const canceledSubscription = event.data.object;
+
+      SubscriptionService.cancelSubscription(canceledSubscription.id);
 
       break;
     default:
-      // console.log(`Unhandled event type ${event.type}`);
+    // console.log(`Unhandled event type ${event.type}`);
   }
 
-  // Return a response to acknowledge receipt of the event
   response.json({ received: true });
 });
 

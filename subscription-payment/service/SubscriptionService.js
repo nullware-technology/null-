@@ -34,6 +34,29 @@ class SubscriptionService {
         }
     }
 
+    async editSubscription(idStripeUser) {
+        const portalSession = await stripe.billingPortal.sessions.create({
+            customer: idStripeUser,
+            return_url: "http://localhost:8080"
+        })
+
+        return portalSession.url;
+    }
+
+    async cancelSubscription(idStripeSubscription) {
+        try {
+            const subscription = await Subscription.findOne({
+                where: { id_stripe_subscription: idStripeSubscription }
+            });
+    
+            subscription.status = SubscriptionStatusEnum.CANCELED;
+    
+            await subscription.save();
+        } catch (error) {
+            console.log(error);
+        }
+    }
+
 }
 
 module.exports = new SubscriptionService();
