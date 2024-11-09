@@ -1,18 +1,24 @@
 const SubscriptionService = require('../service/SubscriptionService');
+const StripeService = require('../service/StripeService');
 
 const express = require('express');
 const app = express();
 
-app.get('/subscription/:idStripeUser', async (req, res) => {
+app.get('/subscription/:idUser', async (req, res) => {
     // Recuperar ID da sessão.
-    var idUser = ""
+    var idUser = req.params.idUser;
 
-    // Recuperar id da stripe pelo id do usuário (temporariamente como parametro na rota).
-    var idStripeUser = req.params.idStripeUser;
+    const subscription = await StripeService.findSubscriptionByUser(idUser);
 
-    const url = await SubscriptionService.editSubscription(idStripeUser);
+    res.send(subscription);
+});
 
-    res.send(url)
+app.get('/subscription/cancel/:idUser', async (req, res) => {
+    var idUser = req.params.idUser;
+    
+    const url = await StripeService.cancelStripeSubscription(idUser);
+
+    res.send(url);
 });
 
 module.exports = app;

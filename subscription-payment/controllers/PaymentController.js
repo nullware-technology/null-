@@ -1,4 +1,4 @@
-const PaymentService = require('../service/PaymentService');
+const StripeService = require('../service/StripeService');
 const SubscriptionService = require('../service/SubscriptionService');
 
 const express = require('express');
@@ -7,7 +7,7 @@ const app = express();
 app.post('/payment/pay', async (req, res) => {
   var paymentData = req.body;
 
-  var url = await PaymentService.createPaymentSession(paymentData);
+  var url = await StripeService.createPaymentSession(paymentData);
 
   res.send(url);
 });
@@ -20,6 +20,14 @@ app.get('/payment/cancel', (req, res) => {
   // Lógica caso queira enviar email depois.
 
   res.json({ cancelUrl: 'https://nullplus.com' });
+});
+
+app.get('/payment/update/:idStripeUser', async (req, res) => {
+  var idStripeUser = req.params.idStripeUser;
+
+  const url = await StripeService.editPaymentMethod(idStripeUser);
+
+  res.send(url);
 });
 
 app.post('/payment/webhook', async (request, response) => {
@@ -38,6 +46,13 @@ app.post('/payment/webhook', async (request, response) => {
       const canceledSubscription = event.data.object;
 
       SubscriptionService.cancelSubscription(canceledSubscription.id);
+
+      break;
+    case 'payment_method.attached':
+      const newPaymentMethod = event.data.object;
+      const customerId = newPaymentMethod.customer;
+
+      StripeService.removeOldPaymentMethod(newPaymentMethod, customerId);
 
       break;
     default:

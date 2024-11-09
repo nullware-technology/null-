@@ -34,15 +34,6 @@ class SubscriptionService {
         }
     }
 
-    async editSubscription(idStripeUser) {
-        const portalSession = await stripe.billingPortal.sessions.create({
-            customer: idStripeUser,
-            return_url: "http://localhost:8080"
-        })
-
-        return portalSession.url;
-    }
-
     async cancelSubscription(idStripeSubscription) {
         try {
             const subscription = await Subscription.findOne({
