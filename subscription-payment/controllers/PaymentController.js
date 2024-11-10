@@ -4,12 +4,16 @@ const SubscriptionService = require('../service/SubscriptionService');
 const express = require('express');
 const app = express();
 
-app.post('/payment/pay', async (req, res) => {
-  var paymentData = req.body;
+app.post('/payment/pay', async (req, res, next) => {
+  try {
+    var paymentData = req.body;
 
-  var url = await StripeService.createPaymentSession(paymentData);
+    var url = await StripeService.createPaymentSession(paymentData);
 
-  res.send(url);
+    res.send(url);
+  } catch (error) {
+    next(error);
+  }
 });
 
 app.get('/payment/success', (req, res) => {
@@ -23,6 +27,9 @@ app.get('/payment/cancel', (req, res) => {
 });
 
 app.get('/payment/update/:idStripeUser', async (req, res) => {
+  // Recuperar ID da sessão.
+
+  // Recuperar idStripe do usuário do outro serviço.
   var idStripeUser = req.params.idStripeUser;
 
   const url = await StripeService.editPaymentMethod(idStripeUser);
@@ -37,7 +44,8 @@ app.post('/payment/webhook', async (request, response) => {
     case 'checkout.session.completed':
       const eventData = event.data.object;
 
-      SubscriptionService.createSubscription(eventData);
+      const subscription = await StripeService.retrieveSubscriptionFromSession(eventData.id);
+      SubscriptionService.createSubscription(subscription);
 
       // Enviar email dando boas vindas, etc.
 

@@ -1,8 +1,12 @@
 const PlansEnum = require('../enum/PlanEnum');
 const Subscription = require('../models/Subscription');
 const SubscriptionDTO = require('../dto/SubscriptionDTO');
+const ResourceNotFoundException = require('../exception/ResourceNotFoundException');
 
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
+
+const INVALID_PLAN = 'Plano inválido.';
+const STRIPE_SUBSCRIPTION_NOT_FOUND = 'Assinatura stripe não encontrada.';
 
 class StripeService {
 
@@ -10,7 +14,7 @@ class StripeService {
     var idPlanPrice = PlansEnum[paymentData.plan.toUpperCase()];
 
     if (!idPlanPrice) {
-      return "Plano inválido.";
+      throw new ResourceNotFoundException(INVALID_PLAN);
     }
 
     try {
@@ -27,23 +31,31 @@ class StripeService {
 
       return session.url;
     } catch (error) {
-      console.log(error);
+      throw error;
     }
   }
 
-  async findSubscriptionByUser(idUser) {
-    try {
-      const subscription = await Subscription.findOne({
-        where: { id_user: idUser }
+  async retrieveSubscriptionFromSession(eventDataId) {
+    try{
+      const session = await stripe.checkout.sessions.retrieve(eventDataId, {
+        expand: ['subscription']
       });
 
-      if (!subscription) {
-        return "Assinatura não encontrada.";
-      }
+      return session.subscription;
+    } catch (error) {
+      throw error;
+    }
+  }
 
-      const subStripe = await stripe.subscriptions.retrieve(subscription.id_stripe_subscription, {
+  async findSubscriptionByUser(idStripeSubscription) {
+    try {
+      const subStripe = await stripe.subscriptions.retrieve(idStripeSubscription, {
         expand: ['default_payment_method', 'plan.product']
       });
+
+      if (!subStripe) {
+        throw new ResourceNotFoundException(STRIPE_SUBSCRIPTION_NOT_FOUND);
+      }
 
       const subscriptionDTO = new SubscriptionDTO(
         subStripe.plan.product.name,
@@ -68,24 +80,22 @@ class StripeService {
           type: 'payment_method_update',
         }
       });
+
+      return session.url;
     } catch (error) {
       console.log(error);
     }
-
-    return session.url;
   }
 
-  async cancelStripeSubscription(idUser) {
+  async cancelStripeSubscription(idStripeSubscription) {
     try {
-      const subscription = await Subscription.findOne({
-        where: { id_user: idUser }
-      });
-
-      await stripe.subscriptions.update(subscription.id_stripe_subscription, {
+      await stripe.subscriptions.update(idStripeSubscription, {
         cancel_at_period_end: true
       });
+
+      return "Assinatura cancelada.";
     } catch (error) {
-      console.log(error);
+      throw error;
     }
   }
 

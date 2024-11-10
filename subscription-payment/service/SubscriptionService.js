@@ -1,40 +1,36 @@
-const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
-
 const Subscription = require('../models/Subscription');
 const Plan = require('../models/Plan');
 const SubscriptionStatusEnum = require('../enum/SubscriptionStatusEnum');
+const ResourceNotFoundException = require('../exception/ResourceNotFoundException');
+
+const SUBSCRIPTION_NOT_FOUND = 'Assinatura não encontrada.';
+const INVALID_PLAN = 'Plano inválido.';
 
 class SubscriptionService {
 
-    async createSubscription(eventData) {
+    async createSubscription(subscription) {
         try {
-            const session = await stripe.checkout.sessions.retrieve(eventData.id, {
-                expand: ['subscription']
-            });
-
             var selectedPlan = await Plan.findOne({
-                where: { id_stripe: session.subscription.plan.id }
+                where: { id_stripe: subscription.plan.id }
             });
 
             if (selectedPlan == null) {
-                console.log('Plano não encontrado.');
-                return;
+                throw new ResourceNotFoundException(INVALID_PLAN);
             }
 
-            // Ver caso plano não seja encontrado.
             // Encontrar o usuário pelo e-mail
             // Associar o usuário e seu id da Stripe
 
             await Subscription.create({
                 id_plan: selectedPlan.id_plan,
-                id_stripe_subscription: session.subscription.id,
+                id_stripe_subscription: subscription.id,
                 id_user: crypto.randomUUID(),
                 status: SubscriptionStatusEnum.ACTIVE,
-                start: new Date(session.subscription.current_period_start * 1000).toISOString(),
-                end: new Date(session.subscription.current_period_end * 1000).toISOString()
+                start: new Date(subscription.current_period_start * 1000).toISOString(),
+                end: new Date(subscription.current_period_end * 1000).toISOString()
             });
         } catch (error) {
-            console.log(error);
+            throw error;
         }
     }
 
@@ -43,12 +39,32 @@ class SubscriptionService {
             const subscription = await Subscription.findOne({
                 where: { id_stripe_subscription: idStripeSubscription }
             });
-    
+
+            if (!subscription) {
+                throw new ResourceNotFoundException(SUBSCRIPTION_NOT_FOUND);
+            }
+
             subscription.status = SubscriptionStatusEnum.CANCELED;
-    
+
             await subscription.save();
         } catch (error) {
             console.log(error);
+        }
+    }
+
+    async findSubscriptionByUser(idUser) {
+        try {
+            const subscription = await Subscription.findOne({
+                where: { id_user: idUser }
+            });
+
+            if (!subscription) {
+                throw new ResourceNotFoundException(SUBSCRIPTION_NOT_FOUND);
+            }
+
+            return subscription;
+        } catch (error) {
+            throw error;
         }
     }
 
