@@ -1,10 +1,12 @@
 const Subscription = require('../domain/models/Subscription');
 const Plan = require('../domain/models/Plan');
 const SubscriptionStatusEnum = require('../domain/enum/SubscriptionStatusEnum');
-const ResourceNotFoundException = require('../domain/exception/ResourceNotFoundException');
+const NullPlusException = require('../domain/exception/NullPlusException');
 
 const SUBSCRIPTION_NOT_FOUND = 'Assinatura não encontrada.';
 const INVALID_PLAN = 'Plano inválido.';
+const ALREADY_CANCELLED = 'Assinatura já cancelada.';
+const TO_BE_CANCELLED = 'Assinatura agendada para cancelamento.';
 
 class SubscriptionService {
 
@@ -15,7 +17,7 @@ class SubscriptionService {
             });
 
             if (selectedPlan == null) {
-                throw new ResourceNotFoundException(INVALID_PLAN);
+                throw new NullPlusException(INVALID_PLAN, 404);
             }
 
             // Encontrar o usuário pelo e-mail
@@ -36,19 +38,32 @@ class SubscriptionService {
 
     async cancelSubscription(idStripeSubscription) {
         try {
-            const subscription = await Subscription.findOne({
-                where: { idStripeSubscription: idStripeSubscription }
-            });
-
-            if (!subscription) {
-                throw new ResourceNotFoundException(SUBSCRIPTION_NOT_FOUND);
-            }
-
+            const subscription = await this.findSubscriptionByStripe(idStripeSubscription);
             subscription.status = SubscriptionStatusEnum.CANCELED;
 
             await subscription.save();
         } catch (error) {
             console.log(error);
+        }
+    }
+
+    async scheduleCancellation(idUser) {   
+        try {
+            const subscription = await this.findSubscriptionByUser(idUser);
+
+            if (subscription.status === SubscriptionStatusEnum.CANCELED) {
+                throw new NullPlusException(ALREADY_CANCELLED, 400);
+            }
+            if (subscription.status === SubscriptionStatusEnum.TO_BE_CANCELLED) {
+                throw new NullPlusException(TO_BE_CANCELLED, 409);
+            }
+
+            subscription.status = SubscriptionStatusEnum.TO_BE_CANCELLED;
+            await subscription.save();
+
+            return subscription;
+        } catch (error) {
+            throw error;
         }
     }
 
@@ -59,7 +74,23 @@ class SubscriptionService {
             });
 
             if (!subscription) {
-                throw new ResourceNotFoundException(SUBSCRIPTION_NOT_FOUND);
+                throw new NullPlusException(SUBSCRIPTION_NOT_FOUND, 404);
+            }
+
+            return subscription;
+        } catch (error) {
+            throw error;
+        }
+    }
+
+    async findSubscriptionByStripe(idStripe) {
+        try {
+            const subscription = await Subscription.findOne({
+                where: { idStripeSubscription: idStripe }
+            });
+
+            if (!subscription) {
+                throw new NullPlusException(SUBSCRIPTION_NOT_FOUND, 404);
             }
 
             return subscription;

@@ -26,15 +26,19 @@ app.get('/payment/cancel', (req, res) => {
   res.json({ cancelUrl: 'https://nullplus.com' });
 });
 
-app.get('/payment/update/:idStripeUser', async (req, res) => {
-  // Recuperar ID da sessão.
+app.get('/payment/update/:idStripeUser', async (req, res, next) => {
+  try {
+    // Recuperar ID da sessão.
 
-  // Recuperar idStripe do usuário do outro serviço.
-  var idStripeUser = req.params.idStripeUser;
+    // Recuperar idStripe do usuário do outro serviço.
+    var idStripeUser = req.params.idStripeUser;
 
-  const url = await StripeService.editPaymentMethod(idStripeUser);
+    const url = await StripeService.editPaymentMethod(idStripeUser);
 
-  res.send(url);
+    res.status(200).send(url);
+  } catch (error) {
+    next(error);
+  }
 });
 
 app.post('/payment/webhook', async (request, response) => {

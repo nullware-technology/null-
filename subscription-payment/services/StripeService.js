@@ -1,7 +1,7 @@
 const PlansEnum = require('../domain/enum/PlanEnum');
-const Subscription = require('../domain/models/Subscription');
 const SubscriptionDTO = require('../domain/dto/SubscriptionDTO');
-const ResourceNotFoundException = require('../domain/exception/ResourceNotFoundException');
+const NullPlusException = require('../domain/exception/NullPlusException');
+const StripeException = require('../domain/exception/StripeException');
 
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 
@@ -14,7 +14,7 @@ class StripeService {
     var idPlanPrice = PlansEnum[paymentData.plan.toUpperCase()];
 
     if (!idPlanPrice) {
-      throw new ResourceNotFoundException(INVALID_PLAN);
+      throw new NullPlusException(INVALID_PLAN, 404);
     }
 
     try {
@@ -47,14 +47,14 @@ class StripeService {
     }
   }
 
-  async findSubscriptionByUser(idStripeSubscription) {
+  async retrieveSubscription(idStripeSubscription) {
     try {
       const subStripe = await stripe.subscriptions.retrieve(idStripeSubscription, {
         expand: ['default_payment_method', 'plan.product']
       });
 
       if (!subStripe) {
-        throw new ResourceNotFoundException(STRIPE_SUBSCRIPTION_NOT_FOUND);
+        throw new NullPlusException(STRIPE_SUBSCRIPTION_NOT_FOUND, 404);
       }
 
       const subscriptionDTO = new SubscriptionDTO(
@@ -67,7 +67,7 @@ class StripeService {
 
       return subscriptionDTO;
     } catch (error) {
-      console.log(error);
+      throw new StripeException(error);
     }
   }
 
@@ -83,7 +83,7 @@ class StripeService {
 
       return session.url;
     } catch (error) {
-      console.log(error);
+      throw new StripeException(error);
     }
   }
 
@@ -95,7 +95,7 @@ class StripeService {
 
       return "Assinatura cancelada.";
     } catch (error) {
-      throw error;
+      throw new StripeException(error);
     }
   }
 
