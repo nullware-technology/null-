@@ -13,11 +13,15 @@ class SubscriptionService {
             });
 
             var selectedPlan = await Plan.findOne({
-                where: {
-                    id_stripe: session.subscription.plan.id
-                }
+                where: { id_stripe: session.subscription.plan.id }
             });
 
+            if (selectedPlan == null) {
+                console.log('Plano não encontrado.');
+                return;
+            }
+
+            // Ver caso plano não seja encontrado.
             // Encontrar o usuário pelo e-mail
             // Associar o usuário e seu id da Stripe
 

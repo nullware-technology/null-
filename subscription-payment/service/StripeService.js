@@ -1,5 +1,6 @@
 const PlansEnum = require('../enum/PlanEnum');
 const Subscription = require('../models/Subscription');
+const SubscriptionDTO = require('../dto/SubscriptionDTO');
 
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 
@@ -23,11 +24,11 @@ class StripeService {
         success_url: 'http://localhost:8080/payment/success',
         cancel_url: 'http://localhost:8080/payment/cancel',
       });
+
+      return session.url;
     } catch (error) {
       console.log(error);
     }
-
-    return session.url;
   }
 
   async findSubscriptionByUser(idUser) {
@@ -41,10 +42,18 @@ class StripeService {
       }
 
       const subStripe = await stripe.subscriptions.retrieve(subscription.id_stripe_subscription, {
-        expand: ['default_payment_method']
+        expand: ['default_payment_method', 'plan.product']
       });
 
-      return subStripe;
+      const subscriptionDTO = new SubscriptionDTO(
+        subStripe.plan.product.name,
+        subStripe.default_payment_method.card,
+        subStripe.created,
+        subStripe.current_period_end,
+        subStripe.plan.amount,
+        subStripe.plan.interval);
+
+      return subscriptionDTO;
     } catch (error) {
       console.log(error);
     }

@@ -9,7 +9,7 @@ app.get('/subscription/:idUser', async (req, res) => {
     var idUser = req.params.idUser;
 
     const subscription = await StripeService.findSubscriptionByUser(idUser);
-
+    
     res.send(subscription);
 });
 
