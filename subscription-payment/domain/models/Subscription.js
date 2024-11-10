@@ -1,12 +1,13 @@
 const Sequelize = require("sequelize");
-const connection = require("../config/Database");
+const connection = require("../../config/Database");
 const Plan = require("./Plan");
 
 const Subscription = connection.define('subscription', {
-    id_subscription: {
+    idSubscription: {
         type: Sequelize.UUID,
-        allowNull: false,
         defaultValue: Sequelize.UUIDV4,
+        field: 'id_subscription',
+        allowNull: false,
         primaryKey: true
     },
     start: {
@@ -21,21 +22,24 @@ const Subscription = connection.define('subscription', {
         type: Sequelize.STRING,
         allowNull: false
     },
-    id_user: {
+    idUser: {
         type: Sequelize.UUID,
+        field: 'id_user',
         allowNull: false
     },
-    id_plan: {
+    idPlan: {
         type: Sequelize.UUID,
+        field: 'id_plan',
         allowNull: false
     },
-    id_stripe_subscription: {
+    idStripeSubscription: {
         type: Sequelize.STRING,
+        field: 'id_stripe_subscription',
         allowNull: false
     }
 }, { tableName: 'subscription', timestamps: false });
 
-Plan.hasMany(Subscription, { foreignKey: 'id_plan' });
-Subscription.belongsTo(Plan, { foreignKey: 'id_plan' });
+Plan.hasMany(Subscription, { foreignKey: 'idPlan' });
+Subscription.belongsTo(Plan, { foreignKey: 'idPlan' });
 
 module.exports = Subscription;

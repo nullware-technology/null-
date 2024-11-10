@@ -1,11 +1,12 @@
 const Sequelize = require("sequelize");
-const connection = require("../config/Database");
+const connection = require("../../config/Database");
 
 const Plan = connection.define('plan', {
-    id_plan: {
+    idPlan: {
         type: Sequelize.UUID,
-        allowNull: false,
         defaultValue: Sequelize.UUIDV4,
+        field: 'id_plan',
+        allowNull: false,
         primaryKey: true
     },
     name: {
@@ -24,8 +25,9 @@ const Plan = connection.define('plan', {
         type: Sequelize.INTEGER,
         allowNull: false
     },
-    id_stripe: {
+    idStripe: {
         type: Sequelize.STRING,
+        field: 'id_stripe',
         allowNull: false
     }
 }, {

@@ -1,7 +1,7 @@
-const PlansEnum = require('../enum/PlanEnum');
-const Subscription = require('../models/Subscription');
-const SubscriptionDTO = require('../dto/SubscriptionDTO');
-const ResourceNotFoundException = require('../exception/ResourceNotFoundException');
+const PlansEnum = require('../domain/enum/PlanEnum');
+const Subscription = require('../domain/models/Subscription');
+const SubscriptionDTO = require('../domain/dto/SubscriptionDTO');
+const ResourceNotFoundException = require('../domain/exception/ResourceNotFoundException');
 
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 

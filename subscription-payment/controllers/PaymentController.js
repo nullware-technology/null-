@@ -1,5 +1,5 @@
-const StripeService = require('../service/StripeService');
-const SubscriptionService = require('../service/SubscriptionService');
+const StripeService = require('../services/StripeService');
+const SubscriptionService = require('../services/SubscriptionService');
 
 const express = require('express');
 const app = express();
