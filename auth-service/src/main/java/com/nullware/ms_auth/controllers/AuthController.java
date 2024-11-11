@@ -5,8 +5,7 @@ import com.nullware.ms_auth.dtos.requests.LoginDTO;
 import com.nullware.ms_auth.dtos.requests.RefreshTokenDTO;
 import com.nullware.ms_auth.dtos.requests.ResetPasswordDTO;
 import com.nullware.ms_auth.dtos.responses.GenericResponseDTO;
-import com.nullware.ms_auth.dtos.responses.LoginResponseDTO;
-import com.nullware.ms_auth.dtos.responses.RefreshTokenResponseDTO;
+import com.nullware.ms_auth.dtos.responses.TokenResponseDTO;
 import com.nullware.ms_auth.dtos.responses.ResetPasswordResponseDTO;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -40,7 +39,7 @@ public interface AuthController {
             @ApiResponse(responseCode = "401", description = "Invalid credentials")
     })
     @PostMapping("/login")
-    ResponseEntity<LoginResponseDTO> login(@RequestBody @Valid LoginDTO loginDTO);
+    ResponseEntity<TokenResponseDTO> login(@RequestBody @Valid LoginDTO loginDTO);
 
     /**
      * Refreshes an expired or nearly expired token, providing a new one.
@@ -57,23 +56,7 @@ public interface AuthController {
             @ApiResponse(responseCode = "401", description = "Invalid or expired refresh token")
     })
     @PostMapping("/refresh-token")
-    ResponseEntity<RefreshTokenResponseDTO> refreshToken(@RequestBody @Valid RefreshTokenDTO refreshTokenDTO);
-
-    /**
-     * Logs out the authenticated user, invalidating their current session.
-     * Requires authentication.
-     *
-     * @return A ResponseEntity indicating the result of the logout operation.
-     */
-    @Operation(summary = "Log out from the current session",
-            description = "Invalidates the current user session, effectively logging the user out",
-            security = {@SecurityRequirement(name = "Bearer Auth")})
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "User logged out successfully"),
-            @ApiResponse(responseCode = "401", description = "User not authenticated")
-    })
-    @PostMapping("/logout")
-    ResponseEntity<GenericResponseDTO> logout();
+    ResponseEntity<TokenResponseDTO> refreshToken(@RequestBody @Valid RefreshTokenDTO refreshTokenDTO);
 
     /**
      * Initiates the password recovery process for a user, sending a recovery email.
