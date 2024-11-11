@@ -27,9 +27,14 @@ public class User {
     @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt;
 
-    @Column(name = "account_type", nullable = false)
-    private String accountType;
+    @ManyToOne
+    @JoinColumn(name = "subscription_plan_id", nullable = false)
+    private SubscriptionPlan subscriptionPlan;
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Profile> profiles;
+
+    public String getSubscriptionPlanName() {
+        return subscriptionPlan != null ? subscriptionPlan.getName() : "No active subscription";
+    }
 }
