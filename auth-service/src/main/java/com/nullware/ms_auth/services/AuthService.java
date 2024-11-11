@@ -5,8 +5,7 @@ import com.nullware.ms_auth.dtos.requests.LoginDTO;
 import com.nullware.ms_auth.dtos.requests.RefreshTokenDTO;
 import com.nullware.ms_auth.dtos.requests.ResetPasswordDTO;
 import com.nullware.ms_auth.dtos.responses.GenericResponseDTO;
-import com.nullware.ms_auth.dtos.responses.LoginResponseDTO;
-import com.nullware.ms_auth.dtos.responses.RefreshTokenResponseDTO;
+import com.nullware.ms_auth.dtos.responses.TokenResponseDTO;
 import com.nullware.ms_auth.dtos.responses.ResetPasswordResponseDTO;
 import com.nullware.ms_auth.exceptions.*;
 
@@ -24,24 +23,7 @@ public interface AuthService {
      * @throws InvalidCredentialsException if the provided credentials are incorrect.
      * @throws AccountLockedException if the user account is locked due to too many failed login attempts.
      */
-    LoginResponseDTO login(LoginDTO loginDTO) throws InvalidCredentialsException, AccountLockedException;
-
-    /**
-     * Refreshes an expired or nearly expired access token, providing a new access token and refresh token.
-     *
-     * @param refreshTokenDTO Data Transfer Object containing the refresh token.
-     * @return A RefreshTokenResponseDTO containing the new access token, refresh token, token type, and expiration details.
-     * @throws InvalidTokenException if the provided refresh token is invalid or expired.
-     */
-    RefreshTokenResponseDTO refreshToken(RefreshTokenDTO refreshTokenDTO) throws InvalidTokenException;
-
-    /**
-     * Logs out the authenticated user by invalidating their current session.
-     *
-     * @return A GenericResponseDTO containing a message indicating the result of the logout operation.
-     * @throws UserNotAuthenticatedException if the user is not authenticated or their session is already invalid.
-     */
-    GenericResponseDTO logout() throws UserNotAuthenticatedException;
+    TokenResponseDTO login(LoginDTO loginDTO) throws InvalidCredentialsException, AccountLockedException;
 
     /**
      * Initiates the password recovery process by sending a password recovery email to the user.
