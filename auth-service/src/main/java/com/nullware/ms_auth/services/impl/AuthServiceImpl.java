@@ -11,10 +11,14 @@ import com.nullware.ms_auth.exceptions.*;
 import com.nullware.ms_auth.repository.UserRepository;
 import com.nullware.ms_auth.security.TokenService;
 import com.nullware.ms_auth.services.AuthService;
+import com.nullware.ms_auth.utils.PasswordGenerator;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 @Slf4j
 @Service
@@ -45,11 +49,63 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public GenericResponseDTO forgotPassword(ForgotPasswordDTO forgotPasswordDTO) throws EmailNotFoundException, EmailSendingException {
-        return null;
+        log.info("Recovering password for user with email {}", forgotPasswordDTO.email());
+        User user = this.userRepo.findByEmail(forgotPasswordDTO.email())
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        if (user != null) {
+            log.info("Generating new password for user {}", user.getEmail());
+            var oldPassword = user.getPassword();
+            var newPassword = PasswordGenerator.generateRandomPassword(14);
+
+            user.setPassword(passwordEncoder.encode(newPassword));
+            this.userRepo.save(user);
+
+            log.info("Password updated successfully for user {}", user.getEmail());
+
+            // TODO: Send password recovery email
+            // this.userProducer.publishRecoverPasswordMessageEmail(user, newPassword);
+
+            log.info("Recover password message sent to user {}", user.getEmail());
+            this.schedulePasswordRevert(user, oldPassword, newPassword);
+
+            log.info("Scheduled password revert for user {}", user.getEmail());
+            return new GenericResponseDTO("Password reset successfully");
+        }
+        return new GenericResponseDTO("User not found");
     }
 
     @Override
     public ResetPasswordResponseDTO resetPassword(ResetPasswordDTO resetPasswordDTO) throws InvalidTokenException, PasswordComplexityException {
-        return null;
+        log.info("Changing password for user with email {}", resetPasswordDTO.email());
+        User user = this.userRepo.findByEmail(resetPasswordDTO.email())
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        if (passwordEncoder.matches(resetPasswordDTO.oldPassword(), user.getPassword())) {
+            user.setPassword(passwordEncoder.encode(resetPasswordDTO.newPassword()));
+            this.userRepo.save(user);
+            log.info("Password changed successfully for user {}", user.getEmail());
+            return new ResetPasswordResponseDTO("Password changed successfully", true);
+        } else {
+            log.warn("Invalid old password for user {}", user.getEmail());
+            return new ResetPasswordResponseDTO("Invalid old password", false);
+        }
+    }
+
+    private void schedulePasswordRevert(User user, String oldPassword, String newPassword) {
+        log.info("Scheduling password revert for user {}", user.getEmail());
+        long expirationTimeMillis = 20; // 20 minutes expiration time
+
+        Executors.newSingleThreadScheduledExecutor().schedule(() -> {
+            log.info("Reverting password for user {}", user.getEmail());
+            User currentUser = userRepo.findById(user.getId())
+                    .orElseThrow(() -> new RuntimeException("User not found"));
+
+            if (passwordEncoder.matches(newPassword, currentUser.getPassword())) {
+                log.info("Reverting password to old password for user {}", user.getEmail());
+                currentUser.setPassword(oldPassword);
+                userRepo.save(currentUser);
+                log.info("Password reverted successfully for user {}", user.getEmail());
+            }
+        }, expirationTimeMillis, TimeUnit.MINUTES);
     }
 }
