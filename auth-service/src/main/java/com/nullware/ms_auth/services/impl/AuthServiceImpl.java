@@ -8,12 +8,14 @@ import com.nullware.ms_auth.dtos.responses.ResetPasswordResponseDTO;
 import com.nullware.ms_auth.dtos.responses.TokenResponseDTO;
 import com.nullware.ms_auth.entity.User;
 import com.nullware.ms_auth.exceptions.*;
+import com.nullware.ms_auth.producers.UserProducer;
 import com.nullware.ms_auth.repository.UserRepository;
 import com.nullware.ms_auth.security.TokenService;
 import com.nullware.ms_auth.services.AuthService;
 import com.nullware.ms_auth.utils.PasswordGenerator;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -26,6 +28,7 @@ import java.util.concurrent.TimeUnit;
 public class AuthServiceImpl implements AuthService {
 
     final UserRepository userRepo;
+    final UserProducer userProducer;
     final PasswordEncoder passwordEncoder;
     final TokenService tokenService;
 
@@ -33,7 +36,7 @@ public class AuthServiceImpl implements AuthService {
     public TokenResponseDTO login(LoginDTO loginDTO) throws InvalidCredentialsException, AccountLockedException {
         log.info("Login attempt for email: {}", loginDTO.email());
 
-        User user = this.userRepo.findByEmail(loginDTO.email()).orElseThrow(() -> new InvalidCredentialsException("User not found."));
+        User user = this.userRepo.findByEmail(loginDTO.email()).orElseThrow(() -> new UsernameNotFoundException("User not found."));
 
         if (!passwordEncoder.matches(loginDTO.password(), user.getPassword())) {
             log.warn("Invalid password for user {}", user.getEmail());
@@ -51,7 +54,7 @@ public class AuthServiceImpl implements AuthService {
     public GenericResponseDTO forgotPassword(ForgotPasswordDTO forgotPasswordDTO) throws EmailNotFoundException, EmailSendingException {
         log.info("Recovering password for user with email {}", forgotPasswordDTO.email());
         User user = this.userRepo.findByEmail(forgotPasswordDTO.email())
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
 
         if (user != null) {
             log.info("Generating new password for user {}", user.getEmail());
@@ -64,7 +67,7 @@ public class AuthServiceImpl implements AuthService {
             log.info("Password updated successfully for user {}", user.getEmail());
 
             // TODO: Send password recovery email
-            // this.userProducer.publishRecoverPasswordMessageEmail(user, newPassword);
+            this.userProducer.publishRecoverPasswordMessageEmail(user, newPassword);
 
             log.info("Recover password message sent to user {}", user.getEmail());
             this.schedulePasswordRevert(user, oldPassword, newPassword);
@@ -79,7 +82,8 @@ public class AuthServiceImpl implements AuthService {
     public ResetPasswordResponseDTO resetPassword(ResetPasswordDTO resetPasswordDTO) throws InvalidTokenException, PasswordComplexityException {
         log.info("Changing password for user with email {}", resetPasswordDTO.email());
         User user = this.userRepo.findByEmail(resetPasswordDTO.email())
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+
         if (passwordEncoder.matches(resetPasswordDTO.oldPassword(), user.getPassword())) {
             user.setPassword(passwordEncoder.encode(resetPasswordDTO.newPassword()));
             this.userRepo.save(user);
@@ -98,7 +102,7 @@ public class AuthServiceImpl implements AuthService {
         Executors.newSingleThreadScheduledExecutor().schedule(() -> {
             log.info("Reverting password for user {}", user.getEmail());
             User currentUser = userRepo.findById(user.getId())
-                    .orElseThrow(() -> new RuntimeException("User not found"));
+                    .orElseThrow(() -> new UsernameNotFoundException("User not found"));
 
             if (passwordEncoder.matches(newPassword, currentUser.getPassword())) {
                 log.info("Reverting password to old password for user {}", user.getEmail());
