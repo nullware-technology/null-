@@ -1,7 +1,0 @@
-package com.nullware.ms_auth.exceptions;
-
-public class EmailNotFoundException extends RuntimeException {
-    public EmailNotFoundException(String message) {
-        super(message);
-    }
-}

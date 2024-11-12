@@ -6,17 +6,17 @@ import com.nullware.ms_auth.dtos.requests.LoginDTO;
 import com.nullware.ms_auth.dtos.requests.RefreshTokenDTO;
 import com.nullware.ms_auth.dtos.requests.ResetPasswordDTO;
 import com.nullware.ms_auth.dtos.responses.GenericResponseDTO;
-import com.nullware.ms_auth.dtos.responses.TokenResponseDTO;
 import com.nullware.ms_auth.dtos.responses.ResetPasswordResponseDTO;
+import com.nullware.ms_auth.dtos.responses.TokenResponseDTO;
 import com.nullware.ms_auth.security.TokenService;
 import com.nullware.ms_auth.services.AuthService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
-import jakarta.validation.Valid;
 
 @Slf4j
 @RestController

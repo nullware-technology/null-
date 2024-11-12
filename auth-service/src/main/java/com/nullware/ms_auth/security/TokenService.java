@@ -19,16 +19,13 @@ import java.util.Date;
 @Service
 public class TokenService {
 
+    private static final String ISSUER = "ms-auth";
     @Value("${api.security.token.secret}")
     private String secret;
-
     @Value("${api.security.access.token.expiration}")
     private int ACCESS_TOKEN_EXPIRES_HOURS;
-
     @Value("${api.security.refresh.token.expiration}")
     private int REFRESH_TOKEN_EXPIRES_HOURS;
-
-    private static final String ISSUER = "ms-auth";
 
     public TokenResponseDTO refreshAccessToken(String refreshToken) {
         try {
@@ -46,7 +43,7 @@ public class TokenService {
             }
 
             log.info("Generating new access token for email: {}", email);
-            var newAccessToken = generateToken(email, ACCESS_TOKEN_EXPIRES_HOURS);
+            var newAccessToken = this.generateToken(email, ACCESS_TOKEN_EXPIRES_HOURS);
 
             return new TokenResponseDTO(
                     newAccessToken,
@@ -61,23 +58,8 @@ public class TokenService {
         }
     }
 
-    public Instant getExpirationTime(String token) {
-        try {
-            Algorithm algorithm = Algorithm.HMAC256(secret.getBytes());
-            Date expirationDate = JWT.require(algorithm)
-                    .withIssuer(ISSUER)
-                    .build()
-                    .verify(token)
-                    .getExpiresAt();
-            return expirationDate.toInstant();
-        } catch (JWTVerificationException exception) {
-            log.error("Failed to get expiration time: {}", exception.getMessage());
-            return null;
-        }
-    }
-
     public long getRemainingTime(String token) {
-        Instant expirationTime = getExpirationTime(token);
+        Instant expirationTime = this.getExpirationTime(token);
         if (expirationTime == null) {
             log.warn("Failed to get expiration time for token: {}", token);
             return -1;
@@ -117,6 +99,21 @@ public class TokenService {
                     .verify(token)
                     .getSubject();
         } catch (JWTVerificationException exception) {
+            return null;
+        }
+    }
+
+    private Instant getExpirationTime(String token) {
+        try {
+            Algorithm algorithm = Algorithm.HMAC256(secret.getBytes());
+            Date expirationDate = JWT.require(algorithm)
+                    .withIssuer(ISSUER)
+                    .build()
+                    .verify(token)
+                    .getExpiresAt();
+            return expirationDate.toInstant();
+        } catch (JWTVerificationException exception) {
+            log.error("Failed to get expiration time: {}", exception.getMessage());
             return null;
         }
     }
