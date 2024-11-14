@@ -7,16 +7,18 @@ import java.util.List;
 public class Plans {
     public static final String ROLE_BASIC = "ROLE_BASIC";
     public static final String ROLE_PREMIUM = "ROLE_PREMIUM";
-
     public static final List<SimpleGrantedAuthority> BASIC_AUTHORITIES = List.of(
             new SimpleGrantedAuthority("ROLE_USER"),
             new SimpleGrantedAuthority(ROLE_BASIC)
     );
-
     public static final List<SimpleGrantedAuthority> PREMIUM_AUTHORITIES = List.of(
             new SimpleGrantedAuthority("ROLE_USER"),
             new SimpleGrantedAuthority(ROLE_PREMIUM)
     );
+
+    private Plans() {
+
+    }
 
     public static List<SimpleGrantedAuthority> getAuthoritiesByPlan(String planType) {
         return switch (planType.toLowerCase()) {
