@@ -22,8 +22,10 @@ public class TokenService {
     private static final String ISSUER = "ms-auth";
     @Value("${api.security.token.secret}")
     private String secret;
+
     @Value("${api.security.access.token.expiration}")
     private int ACCESS_TOKEN_EXPIRES_HOURS;
+
     @Value("${api.security.refresh.token.expiration}")
     private int REFRESH_TOKEN_EXPIRES_HOURS;
 
