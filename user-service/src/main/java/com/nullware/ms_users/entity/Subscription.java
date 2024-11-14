@@ -18,12 +18,15 @@ public class Subscription {
     private Long id;
 
     @ManyToOne
-    @JoinColumn(name = "user_id", nullable = false)
+    @JoinColumn(name = "users_id", nullable = false)
     private User user;
 
     @ManyToOne
-    @JoinColumn(name = "subscription_plan_id", nullable = false)
-    private SubscriptionPlan subscriptionPlan;
+    @JoinColumn(name = "plan_id", nullable = false)
+    private Plan plan;
+
+    @Column(name = "id_stripe_subscription")
+    private String idStripeSubscription;
 
     @Column(nullable = false)
     private LocalDate startDate;

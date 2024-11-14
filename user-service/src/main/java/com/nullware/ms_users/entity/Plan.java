@@ -12,7 +12,7 @@ import java.util.List;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class SubscriptionPlan {
+public class Plan {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -24,12 +24,15 @@ public class SubscriptionPlan {
     @Column
     private String description;
 
-    @Column(name = "monthly_price", nullable = false)
-    private BigDecimal monthlyPrice;
+    @Column(name = "price", nullable = false)
+    private BigDecimal price;
 
+    @Column(name = "id_stripe", nullable = false)
+    private String idStripe;
+    
     @Column(nullable = false)
     private Integer duration; // Duration of the plan in months
 
-    @OneToMany(mappedBy = "subscriptionPlan", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "plan", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Subscription> subscriptions;
 }
