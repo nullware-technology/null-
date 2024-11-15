@@ -2,21 +2,26 @@ package com.nullware.ms_users.entity;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.time.LocalDateTime;
+import java.time.LocalDate;
 import java.util.List;
 
-@Entity
 @Data
+@Entity
+@Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@Table(name = "users")
 public class User {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+    private String name;
 
     @Column(nullable = false, unique = true)
     private String email;
@@ -25,16 +30,16 @@ public class User {
     private String password;
 
     @Column(name = "created_at", nullable = false)
-    private LocalDateTime createdAt;
+    private LocalDate createdAt;
 
     @ManyToOne
-    @JoinColumn(name = "subscription_plan_id", nullable = false)
-    private SubscriptionPlan subscriptionPlan;
+    @JoinColumn(name = "subscription_plan_id")
+    private Plan plan;
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Profile> profiles;
 
     public String getSubscriptionPlanName() {
-        return subscriptionPlan != null ? subscriptionPlan.getName() : "No active subscription";
+        return plan != null ? plan.getName() : "No active subscription";
     }
 }
