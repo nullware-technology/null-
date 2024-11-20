@@ -12,28 +12,36 @@ import com.nullware.ms_auth.repository.UserRepository;
 import com.nullware.ms_auth.security.TokenService;
 import com.nullware.ms_auth.services.AuthService;
 import com.nullware.ms_auth.utils.PasswordGenerator;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
-@Slf4j
 @Service
-@RequiredArgsConstructor
 public class AuthServiceImpl implements AuthService {
 
+    private static final Logger log = LoggerFactory.getLogger(AuthServiceImpl.class);
+
     final UserRepository userRepo;
+    // final UserProducer userProducer;
     final PasswordEncoder passwordEncoder;
     final TokenService tokenService;
+
+    public AuthServiceImpl(UserRepository userRepo, PasswordEncoder passwordEncoder, TokenService tokenService) {
+        this.userRepo = userRepo;
+        this.passwordEncoder = passwordEncoder;
+        this.tokenService = tokenService;
+    }
 
     @Override
     public TokenResponseDTO login(LoginDTO loginDTO) throws InvalidCredentialsException, AccountLockedException {
         log.info("Login attempt for email: {}", loginDTO.email());
 
-        User user = this.userRepo.findByEmail(loginDTO.email()).orElseThrow(() -> new InvalidCredentialsException("User not found."));
+        User user = this.userRepo.findByEmail(loginDTO.email()).orElseThrow(() -> new UsernameNotFoundException("User not found."));
 
         if (!passwordEncoder.matches(loginDTO.password(), user.getPassword())) {
             log.warn("Invalid password for user {}", user.getEmail());
@@ -51,13 +59,13 @@ public class AuthServiceImpl implements AuthService {
     public GenericResponseDTO forgotPassword(ForgotPasswordDTO forgotPasswordDTO) throws EmailNotFoundException, EmailSendingException {
         log.info("Recovering password for user with email {}", forgotPasswordDTO.email());
         User user = this.userRepo.findByEmail(forgotPasswordDTO.email())
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
 
         if (user != null) {
             log.info("Generating new password for user {}", user.getEmail());
             var oldPassword = user.getPassword();
             var newPassword = PasswordGenerator.generateRandomPassword(14);
-
+            log.info("New password generated: {}", newPassword);
             user.setPassword(passwordEncoder.encode(newPassword));
             this.userRepo.save(user);
 
@@ -79,7 +87,8 @@ public class AuthServiceImpl implements AuthService {
     public ResetPasswordResponseDTO resetPassword(ResetPasswordDTO resetPasswordDTO) throws InvalidTokenException, PasswordComplexityException {
         log.info("Changing password for user with email {}", resetPasswordDTO.email());
         User user = this.userRepo.findByEmail(resetPasswordDTO.email())
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+
         if (passwordEncoder.matches(resetPasswordDTO.oldPassword(), user.getPassword())) {
             user.setPassword(passwordEncoder.encode(resetPasswordDTO.newPassword()));
             this.userRepo.save(user);
@@ -98,7 +107,7 @@ public class AuthServiceImpl implements AuthService {
         Executors.newSingleThreadScheduledExecutor().schedule(() -> {
             log.info("Reverting password for user {}", user.getEmail());
             User currentUser = userRepo.findById(user.getId())
-                    .orElseThrow(() -> new RuntimeException("User not found"));
+                    .orElseThrow(() -> new UsernameNotFoundException("User not found"));
 
             if (passwordEncoder.matches(newPassword, currentUser.getPassword())) {
                 log.info("Reverting password to old password for user {}", user.getEmail());

@@ -1,6 +1,5 @@
 package com.nullware.ms_auth.security;
 
-import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -17,20 +16,25 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 
 @Configuration
 @EnableWebSecurity
-@RequiredArgsConstructor
 public class SecurityConfig {
 
     final CustomUserDetailsService customUserDetailsService;
     final SecurityFilter securityFilter;
 
+    public SecurityConfig(CustomUserDetailsService customUserDetailsService, SecurityFilter securityFilter) {
+        this.customUserDetailsService = customUserDetailsService;
+        this.securityFilter = securityFilter;
+    }
+
+    @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
                 .csrf(AbstractHttpConfigurer::disable)
                 .sessionManagement(
                         session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(authorize -> authorize
+                        .requestMatchers(HttpMethod.GET, "healthz").permitAll()
                         .requestMatchers(HttpMethod.POST, "auth/login").permitAll()
-                        .requestMatchers(HttpMethod.POST, "auth/register").permitAll()
                         .requestMatchers(HttpMethod.POST, "auth/forgot-password").permitAll()
                         .requestMatchers("swagger-ui/**").permitAll()
                         .requestMatchers("v3/api-docs/**").permitAll()

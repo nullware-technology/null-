@@ -10,21 +10,26 @@ import com.nullware.ms_auth.dtos.responses.ResetPasswordResponseDTO;
 import com.nullware.ms_auth.dtos.responses.TokenResponseDTO;
 import com.nullware.ms_auth.security.TokenService;
 import com.nullware.ms_auth.services.AuthService;
-import jakarta.validation.Valid;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
+import jakarta.validation.Valid;
 
-@Slf4j
 @RestController
-@RequiredArgsConstructor
 public class AuthControllerImpl implements AuthController {
+
+    private static final Logger log = LoggerFactory.getLogger(AuthControllerImpl.class);
 
     private final AuthService authService;
     private final TokenService tokenService;
+
+    public AuthControllerImpl(AuthService authService, TokenService tokenService) {
+        this.authService = authService;
+        this.tokenService = tokenService;
+    }
 
     @Override
     public ResponseEntity<TokenResponseDTO> login(@RequestBody @Valid LoginDTO loginDTO) {
