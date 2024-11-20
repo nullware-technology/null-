@@ -5,7 +5,8 @@ import com.auth0.jwt.algorithms.Algorithm;
 import com.auth0.jwt.exceptions.JWTCreationException;
 import com.auth0.jwt.exceptions.JWTVerificationException;
 import com.nullware.ms_auth.dtos.responses.TokenResponseDTO;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -15,19 +16,20 @@ import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.Date;
 
-@Slf4j
 @Service
 public class TokenService {
+
+    private static final Logger log = LoggerFactory.getLogger(TokenService.class);
 
     private static final String ISSUER = "ms-auth";
     @Value("${api.security.token.secret}")
     private String secret;
 
-    @Value("${api.security.access.token.expiration}")
-    private int ACCESS_TOKEN_EXPIRES_HOURS;
+    @Value("${api.security.access.token.expiration.minutes}")
+    private int ACCESS_TOKEN_EXPIRES_MINUTES;
 
-    @Value("${api.security.refresh.token.expiration}")
-    private int REFRESH_TOKEN_EXPIRES_HOURS;
+    @Value("${api.security.refresh.token.expiration.days}")
+    private int REFRESH_TOKEN_EXPIRES_DAYS;
 
     public TokenResponseDTO refreshAccessToken(String refreshToken) {
         try {
@@ -45,7 +47,7 @@ public class TokenService {
             }
 
             log.info("Generating new access token for email: {}", email);
-            var newAccessToken = this.generateToken(email, ACCESS_TOKEN_EXPIRES_HOURS);
+            var newAccessToken = this.generateToken(email, ACCESS_TOKEN_EXPIRES_MINUTES, "minutes");
 
             return new TokenResponseDTO(
                     newAccessToken,
@@ -80,15 +82,15 @@ public class TokenService {
     }
 
     public TokenResponseDTO generateTokens(String email) {
-        String accessToken = generateToken(email, ACCESS_TOKEN_EXPIRES_HOURS);
-        String refreshToken = generateToken(email, REFRESH_TOKEN_EXPIRES_HOURS);
+        String accessToken = generateToken(email, ACCESS_TOKEN_EXPIRES_MINUTES, "minutes");
+        String refreshToken = generateToken(email, REFRESH_TOKEN_EXPIRES_DAYS, "days");
 
         return new TokenResponseDTO(
                 accessToken,
                 refreshToken,
                 "Bearer",
-                ACCESS_TOKEN_EXPIRES_HOURS * 3600L,
-                REFRESH_TOKEN_EXPIRES_HOURS * 3600L
+                ACCESS_TOKEN_EXPIRES_MINUTES * 60L, // em segundos
+                REFRESH_TOKEN_EXPIRES_DAYS * 24L * 3600L // em segundos
         );
     }
 
@@ -120,22 +122,27 @@ public class TokenService {
         }
     }
 
-    private String generateToken(String email, int expiresInHours) {
+    private String generateToken(String email, int expiresIn, String unit) {
         try {
-            log.debug("Generating token for email: {} with expiration in {} hours", email, expiresInHours);
+            log.debug("Generating token for email: {} with expiration in {} {}", email, expiresIn, unit);
             Algorithm algorithm = Algorithm.HMAC256(secret.getBytes());
             return JWT.create()
                     .withIssuer(ISSUER)
                     .withSubject(email)
-                    .withExpiresAt(generateExpirationDate(expiresInHours))
+                    .withExpiresAt(generateExpirationDate(expiresIn, unit))
                     .sign(algorithm);
         } catch (JWTCreationException exception) {
             log.error("Error while creating token for email {}: {}", email, exception.getMessage());
-            throw new RuntimeException("Error while generating token", exception);
+            throw new JWTCreationException("Error while generating token", exception);
         }
     }
 
-    private Instant generateExpirationDate(int hours) {
-        return LocalDateTime.now().plusHours(hours).toInstant(ZoneOffset.of("-03:00"));
+    private Instant generateExpirationDate(int amount, String unit) {
+        LocalDateTime now = LocalDateTime.now(ZoneOffset.of("-03:00"));
+        return switch (unit) {
+            case "minutes" -> now.plusMinutes(amount).toInstant(ZoneOffset.of("-03:00"));
+            case "days" -> now.plusDays(amount).toInstant(ZoneOffset.of("-03:00"));
+            default -> throw new IllegalArgumentException("Invalid time unit: " + unit);
+        };
     }
 }
