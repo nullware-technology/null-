@@ -1,31 +1,35 @@
-# Use a base image with JDK 17 and Maven installed
+# Stage 1: Build
 FROM maven:3.8.4-openjdk-17-slim AS build
 
-# Set the working directory in the container
+# Set the working directory
 WORKDIR /app
 
-# Copy the Maven project file
+# Cache Maven dependencies (first, copy only the pom.xml)
 COPY pom.xml .
 
-# Copy the source code
+# Download dependencies to avoid reprocessing during rebuilds
+RUN mvn dependency:go-offline -Dmaven.repo.local=/tmp/repo
+
+# Copy the source code into the container
 COPY src ./src
 
-# Build the application and skip tests to optimize the build process
+# Compile the application and clean up unnecessary caches
 RUN mvn clean package -DskipTests -Dmaven.repo.local=/tmp/repo && \
     rm -rf /tmp/repo && \
-    rm -rf /app/target/*.test*
+    rm -rf /root/.m2 && \
+    find /app/target -type f -name "*.original" -delete
 
-# Use a smaller base image for runtime
-FROM openjdk:17-jdk-alpine
+# Stage 2: Runtime
+FROM gcr.io/distroless/java17-debian11:nonroot
 
-# Set the working directory in the container
+# Set the working directory
 WORKDIR /app
 
-# Copy the built JAR file from the build stage
+# Copy the JAR file generated in the build stage
 COPY --from=build /app/target/*.jar ./app.jar
 
-# Expose the port the application runs on
-EXPOSE ${SERVER_PORT_USER}
+# Expose the port configured by the environment
+EXPOSE ${CONTAINER_SERVER_PORT}
 
 # Command to run the application
-CMD ["java", "-jar", "app.jar"]
+CMD ["app.jar"]
