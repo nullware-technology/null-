@@ -2,8 +2,8 @@ package com.nullware.ms_users.controllers.impl;
 
 import com.nullware.ms_users.controllers.UserController;
 import com.nullware.ms_users.dtos.requests.RegisterRequestDTO;
-import com.nullware.ms_users.dtos.responses.GenericResponse;
-import com.nullware.ms_users.dtos.responses.UserInfoResponse;
+import com.nullware.ms_users.dtos.responses.GenericResponseDTO;
+import com.nullware.ms_users.dtos.responses.UserInfoResponseDTO;
 import com.nullware.ms_users.services.UserService;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Email;
@@ -20,22 +20,22 @@ public class UserControllerImpl implements UserController {
     final UserService userService;
 
     @Override
-    public ResponseEntity<GenericResponse> userRegister(@RequestBody @Valid RegisterRequestDTO registerRequestDTO) {
-        GenericResponse registerResponseDTO = userService.registerUser(registerRequestDTO);
+    public ResponseEntity<GenericResponseDTO> userRegister(@RequestBody @Valid RegisterRequestDTO registerRequestDTO) {
+        GenericResponseDTO registerResponseDTO = userService.registerUser(registerRequestDTO);
 
         return ResponseEntity.ok(registerResponseDTO);
     }
 
     @Override
-    public ResponseEntity<UserInfoResponse> getUserInfoByEmail(@PathVariable @Valid @Email String email) {
-        UserInfoResponse userInfoResponse = userService.getUserInfoByEmail(email);
+    public ResponseEntity<UserInfoResponseDTO> getUserInfoByEmail(@PathVariable @Valid @Email String email) {
+        UserInfoResponseDTO userInfoResponseDTO = userService.getUserInfoByEmail(email);
 
-        return ResponseEntity.ok(userInfoResponse);
+        return ResponseEntity.ok(userInfoResponseDTO);
     }
 
     @Override
-    public ResponseEntity<GenericResponse> getSubscriptionStatus(@PathVariable @Valid @Email String email) {
-        GenericResponse subscriptionStatus = userService.getSubscriptionStatus(email);
+    public ResponseEntity<GenericResponseDTO> getSubscriptionStatus(@PathVariable @Valid @Email String email) {
+        GenericResponseDTO subscriptionStatus = userService.getSubscriptionStatus(email);
         return ResponseEntity.ok(subscriptionStatus);
     }
 }
