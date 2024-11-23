@@ -1,5 +1,6 @@
 package com.nullware.ms_users.entity;
 
+import com.nullware.ms_users.entity.enums.SubscriptionStatus;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -34,6 +35,7 @@ public class Subscription {
     @Column
     private LocalDate endDate;
 
+    @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private String status; // E.g., "active", "canceled", "expired"
+    private SubscriptionStatus status;
 }
