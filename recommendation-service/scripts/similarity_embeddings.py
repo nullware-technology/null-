@@ -19,7 +19,7 @@ def main():
     collection = connect_to_mongodb()
 
     # Load embeddings from a pickle file
-    embeddings_df = pd.read_pickle("../artifacts/similarity.pkl")
+    embeddings_df = pd.read_pickle("")
     logger.info(f"Embeddings loaded with shape: {embeddings_df.shape}")
 
     # Convert DataFrame to a list of dictionaries
