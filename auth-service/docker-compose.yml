@@ -1,0 +1,18 @@
+version: '3.9'
+
+services:
+  auth-service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "${SERVER_PORT}:${SERVER_PORT}"
+    environment:
+      - SERVER_PORT=${SERVER_PORT}
+      - DB_URL=${DB_URL}
+      - ACCESS_TOKEN_EXPIRATION_MINUTES=${ACCESS_TOKEN_EXPIRATION_MINUTES}
+      - REFRESH_TOKEN_EXPIRATION_DAYS=${REFRESH_TOKEN_EXPIRATION_DAYS}
+      - JWT_SECRET_KEY=${JWT_SECRET_KEY}
+      - RECOVER_PASSWORD_QUEUE=${RECOVER_PASSWORD_QUEUE}
+    env_file:
+      - .env
