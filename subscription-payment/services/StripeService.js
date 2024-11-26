@@ -37,12 +37,12 @@ class StripeService {
   }
 
   async retrieveSubscriptionFromSession(eventDataId) {
-    try{
+    try {
       const session = await stripe.checkout.sessions.retrieve(eventDataId, {
-        expand: ['subscription']
+        expand: ['subscription', 'customer']
       });
 
-      return session.subscription;
+      return { subscription: session.subscription, customerEmail: session.customer.email };
     } catch (error) {
       throw error;
     }
