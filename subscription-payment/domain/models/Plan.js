@@ -2,10 +2,9 @@ const Sequelize = require("sequelize");
 const connection = require("../../config/Database");
 
 const Plan = connection.define('plan', {
-    idPlan: {
-        type: Sequelize.UUID,
-        defaultValue: Sequelize.UUIDV4,
-        field: 'id_plan',
+    id: {
+        type: Sequelize.INTEGER,
+        autoIncrement: true,
         allowNull: false,
         primaryKey: true
     },
@@ -21,7 +20,7 @@ const Plan = connection.define('plan', {
         type: Sequelize.FLOAT,
         allowNull: false
     },
-    length: {
+    duration: {
         type: Sequelize.INTEGER,
         allowNull: false
     },

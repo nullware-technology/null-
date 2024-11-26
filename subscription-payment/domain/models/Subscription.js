@@ -3,19 +3,20 @@ const connection = require("../../config/Database");
 const Plan = require("./Plan");
 
 const Subscription = connection.define('subscription', {
-    idSubscription: {
-        type: Sequelize.UUID,
-        defaultValue: Sequelize.UUIDV4,
-        field: 'id_subscription',
+    id: {
+        type: Sequelize.INTEGER,
+        autoIncrement: true,
         allowNull: false,
         primaryKey: true
     },
     start: {
         type: Sequelize.INTEGER,
+        field: 'start_date',
         allowNull: false
     },
     end: {
         type: Sequelize.INTEGER,
+        field: 'end_date',
         allowNull: false
     },
     status: {
@@ -23,13 +24,13 @@ const Subscription = connection.define('subscription', {
         allowNull: false
     },
     idUser: {
-        type: Sequelize.UUID,
-        field: 'id_user',
+        type: Sequelize.INTEGER,
+        field: 'users_id',
         allowNull: false
     },
     idPlan: {
-        type: Sequelize.UUID,
-        field: 'id_plan',
+        type: Sequelize.INTEGER,
+        field: 'plan_id',
         allowNull: false
     },
     idStripeSubscription: {

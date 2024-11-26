@@ -1,9 +1,9 @@
 const SubscriptionStatusEnum = Object.freeze({
-    ACTIVE: 'ATIVA',
-    INACTIVE: 'INATIVA',
-    TRIAL: 'PERIODO_TESTE',
-    CANCELED: 'CANCELADA',
-    TO_BE_CANCELLED: 'CANCELAMENTO SOLICITADO'
+    ACTIVE: 'ACTIVE',
+    INACTIVE: 'INACTIVE',
+    TRIAL: 'TRIAL',
+    CANCELED: 'CANCELED',
+    TO_BE_CANCELED: 'TO_BE_CANCELED'
 });
 
 module.exports = SubscriptionStatusEnum;
