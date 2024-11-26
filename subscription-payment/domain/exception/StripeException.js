@@ -11,7 +11,8 @@ class StripeException extends Error {
             case 'resource_missing':
                 return { message: 'Usuário não encontrado no Stripe.', status: 404 };
             default:
-                return { message: 'Usuário não encontrado no Stripe.', status: 500 };
+                console.log(error.raw.message)
+                return { message: 'Erro no Stripe.', status: 500 };
         }
     }
 

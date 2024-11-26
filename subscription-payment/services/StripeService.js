@@ -1,4 +1,4 @@
-const PlansEnum = require('../domain/enum/PlanEnum');
+const PlanEnum = require('../domain/enum/PlanEnum');
 const SubscriptionDTO = require('../domain/dto/SubscriptionDTO');
 const NullPlusException = require('../domain/exception/NullPlusException');
 const StripeException = require('../domain/exception/StripeException');
@@ -6,14 +6,15 @@ const StripeException = require('../domain/exception/StripeException');
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 
 const INVALID_PLAN = 'Plano inválido.';
+const SAME_PLAN = 'O plano selecionado já está ativo na assinatura.';
 const STRIPE_SUBSCRIPTION_NOT_FOUND = 'Assinatura stripe não encontrada.';
 
 class StripeService {
 
   async createPaymentSession(paymentData) {
-    var idPlanPrice = PlansEnum[paymentData.plan.toUpperCase()];
+    var plan = PlanEnum[paymentData.plan.toUpperCase()];
 
-    if (!idPlanPrice) {
+    if (!plan) {
       throw new NullPlusException(INVALID_PLAN, 404);
     }
 
@@ -22,7 +23,7 @@ class StripeService {
         mode: 'subscription',
         customer_email: paymentData.userEmail,
         line_items: [{
-          price: idPlanPrice,
+          price: plan.priceId,
           quantity: 1,
         }],
         success_url: 'http://localhost:8080/payment/success',
@@ -71,6 +72,41 @@ class StripeService {
     }
   }
 
+  async updatePlan(stripeSubscriptionId, newPlan) {
+    var plan = PlanEnum[newPlan.toUpperCase()];
+
+    if (!plan) {
+      throw new NullPlusException(INVALID_PLAN, 404);
+    }
+
+    try {
+      const sub = await stripe.subscriptions.retrieve(stripeSubscriptionId);
+      var previuousPlan = PlanEnum.getPlanById(sub.plan.id);
+
+      if (previuousPlan.priceId === plan.priceId) {
+        throw new NullPlusException(SAME_PLAN, 404);
+      }
+
+      await stripe.subscriptions.update(
+        stripeSubscriptionId,
+        {
+          items: [
+            {
+              id: sub.items.data[0].id,
+              price: plan.priceId,
+            }
+          ]
+        }
+      );
+    } catch (error) {
+      if (error instanceof NullPlusException) {
+        throw error;
+      }
+
+      throw new StripeException(error);
+    }
+  }
+
   async editPaymentMethod(idStripeUser) {
     try {
       const session = await stripe.billingPortal.sessions.create({
@@ -112,7 +148,7 @@ class StripeService {
         }
       });
     } catch (error) {
-      console.log(error);
+      throw new StripeException(error);
     }
   }
 

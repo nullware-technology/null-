@@ -19,6 +19,21 @@ app.get('/subscription/:idUser', async (req, res, next) => {
     }
 });
 
+app.get('/subscription/upgrade/:idUser', async (req, res, next) => {
+    // Recuperar ID da sessão.
+    var idUser = req.params.idUser;
+    const newPlan = req.body.newPlan;
+
+    try {
+        const subscription = await SubscriptionService.findSubscriptionByUser(idUser);
+        const msg = await StripeService.updatePlan(subscription.idStripeSubscription, newPlan);
+
+        res.status(200).json(msg);
+    } catch (error) {
+        next(error);
+    }
+});
+
 app.get('/subscription/cancel/:idUser', async (req, res, next) => {
     try {
         // Recuperar ID da sessão.

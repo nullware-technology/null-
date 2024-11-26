@@ -60,6 +60,18 @@ app.post('/payment/webhook', async (request, response) => {
       SubscriptionService.cancelSubscription(canceledSubscription.id);
 
       break;
+    case 'customer.subscription.updated':
+      const updatedSubscription = event.data.object;
+      const previousSubscription = event.data.previous_attributes;
+
+      if (previousSubscription?.plan?.id && updatedSubscription.plan?.id) {
+        if (updatedSubscription.plan.id !== previousSubscription.plan.id) {
+          const newPlanStripeId = updatedSubscription.plan.id;
+          SubscriptionService.updatePlan(updatedSubscription.id, newPlanStripeId);
+        }
+      }
+      
+      break;
     case 'payment_method.attached':
       const newPaymentMethod = event.data.object;
       const customerId = newPaymentMethod.customer;
