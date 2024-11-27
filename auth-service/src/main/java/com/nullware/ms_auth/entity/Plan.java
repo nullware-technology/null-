@@ -40,6 +40,8 @@ public class Plan {
         this.subscriptions = subscriptions;
     }
 
+    public Plan() {}
+
     public Long getId() {
         return id;
     }
