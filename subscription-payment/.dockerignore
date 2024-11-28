@@ -1,0 +1,10 @@
+# Ignore arquivos e diretórios desnecessários
+node_modules
+npm-debug.log
+.env
+.DS_Store
+.git
+.gitignore
+.vscode
+*.log
+*.tmp
