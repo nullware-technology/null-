@@ -4,6 +4,8 @@ const NullPlusException = require('../domain/exception/NullPlusException');
 const StripeException = require('../domain/exception/StripeException');
 
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
+const HOST = process.env.HOST;
+const PORT = process.env.PORT;
 
 const INVALID_PLAN = 'Plano inválido.';
 const SAME_PLAN = 'O plano selecionado já está ativo na assinatura.';
@@ -26,8 +28,8 @@ class StripeService {
           price: plan.priceId,
           quantity: 1,
         }],
-        success_url: 'http://localhost:8080/payment/success',
-        cancel_url: 'http://localhost:8080/payment/cancel',
+        success_url: HOST + PORT + '/payment/success',
+        cancel_url: HOST + PORT + '/payment/cancel',
       });
 
       return session.url;
@@ -111,7 +113,7 @@ class StripeService {
     try {
       const session = await stripe.billingPortal.sessions.create({
         customer: idStripeUser,
-        return_url: 'http://localhost:8080',
+        return_url: HOST + PORT,
         flow_data: {
           type: 'payment_method_update',
         }
