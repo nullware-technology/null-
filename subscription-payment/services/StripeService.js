@@ -42,7 +42,11 @@ class StripeService {
         expand: ['subscription', 'customer']
       });
 
-      return { subscription: session.subscription, customerEmail: session.customer.email };
+      return { 
+        subscription: session.subscription, 
+        customerEmail: session.customer.email, 
+        customerName: session.customer.name 
+      };
     } catch (error) {
       throw error;
     }
