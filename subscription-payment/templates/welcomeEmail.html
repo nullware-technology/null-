@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bem-vindo ao Null+!</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f9;
+            margin: 0;
+            padding: 0;
+            padding-top: 20px;
+        }
+        .email-container {
+            width: 100%;
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #ffffff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        .email-header {
+            text-align: center;
+            padding-bottom: 20px;
+        }
+        .email-header h1 {
+            font-size: 28px;
+            color: #2E6A46;
+        }
+        .email-body {
+            font-size: 16px;
+            line-height: 1.5;
+            color: #333333;
+        }
+        .email-body p {
+            margin: 10px 0;
+        }
+        .cta-button {
+            display: inline-block;
+            background-color: #2E6A46;
+            color: #ffffff;
+            padding: 10px 20px;
+            text-decoration: none;
+            font-weight: bold;
+            border-radius: 5px;
+            margin-top: 20px;
+            text-align: center;
+        }
+        .cta-button:hover {
+            background-color: #23533c;
+        }
+        .footer {
+            text-align: center;
+            font-size: 12px;
+            color: #777777;
+            margin-top: 30px;
+        }
+    </style>
+</head>
+<body>
+    <div class="email-container">
+        <div class="email-header">
+            <h1>Bem-vindo ao Null+ Streaming!</h1>
+        </div>
+        <div class="email-body">
+            <p>Olá {{name}},</p>
+            <p>Estamos empolgados em tê-lo conosco no <strong>Null+</strong>, sua nova plataforma de streaming de filmes, séries e muito mais!</p>
+            <p>A sua conta foi criada com sucesso, e agora você pode começar a explorar todo o conteúdo exclusivo que preparamos para você.</p>
+            <p>Para começar, clique no botão abaixo e comece sua jornada de entretenimento:</p>
+            <div style="text-align: center;">
+                <a href="https://www.exemplo.com" class="cta-button">Assista Agora</a>
+            </div><br>
+            <p>Se você tiver alguma dúvida ou precisar de ajuda para aproveitar ao máximo nossa plataforma, nossa equipe de suporte está pronta para ajudar!</p>
+        </div>
+        <div class="footer">
+            <p>Este é um e-mail automático. Por favor, não responda a esta mensagem.</p>
+            <p>&copy; 2024 Null+. Todos os direitos reservados.</p>
+        </div>
+    </div>
+</body>
+</html>

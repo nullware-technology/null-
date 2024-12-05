@@ -1,5 +1,6 @@
 const StripeService = require('../services/StripeService');
 const SubscriptionService = require('../services/SubscriptionService');
+const EmailService = require('../services/EmailService');
 
 const express = require('express');
 const app = express();
@@ -41,7 +42,7 @@ app.get('/payment/update/:idStripeUser', async (req, res, next) => {
   }
 });
 
-app.post('/payment/webhook', async (request, response) => {
+app.post('/payment/webhook', async (request, response, next) => {
   const event = request.body;
 
   switch (event.type) {
@@ -51,7 +52,7 @@ app.post('/payment/webhook', async (request, response) => {
       const subscription = await StripeService.retrieveSubscriptionFromSession(eventData.id);
       SubscriptionService.createSubscription(subscription);
 
-      // Enviar email dando boas vindas, etc.
+      EmailService.sendWelcomeEmail(subscription.customerEmail, subscription.customerName);
 
       break;
     case 'customer.subscription.deleted':
